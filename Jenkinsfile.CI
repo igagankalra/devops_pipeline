@@ -1,8 +1,8 @@
 pipeline {
   agent 'any'
   tools {
-    jdk 'Java8'
-    maven 'Maven'
+    jdk 'java8'
+    maven 'maven'
   }
   parameters {
     choice(
