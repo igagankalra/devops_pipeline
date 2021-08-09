@@ -1,14 +1,14 @@
 variable "vpc_id" {
-  description = "VPC ID "
+  description = "VPC ID"
   default     = "vpc-c8c44ab5"
 }
 variable "igw_id" {
-  description = "IGW ID "
+  description = "IGW ID"
   default     = "igw-2dba4757"
 }
 variable "subnet1_cidr" {
   description = "The CIDR block for the subnet"
-  default     = "172.31.96.0/20"
+  default     = "172.31.112.0/20"
 }
 variable "az1" {
   description = "The availability zone for the subnet"
@@ -25,7 +25,7 @@ variable "associate_public_ip" {
   default     = true
 }
 
-variable "web-access-ip" {
+variable "web-ip" {
   type        = list(string)
   description = "IP address allowed to access mySQL at port 3306"
   default     = ["0.0.0.0/0"]

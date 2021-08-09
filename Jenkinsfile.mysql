@@ -1,5 +1,9 @@
 pipeline {
-    agent { label 'TestLinux' }
+  agent 'any'
+  tools {
+    jdk 'java8'
+    maven 'maven'
+  }
     parameters {
       choice(
         name: 'Environment',
@@ -15,17 +19,17 @@ pipeline {
             stages {
                 stage('Initialize Terraform') {
                     steps {                    
-                        sh "cd mysql/terraform && terraform init"
+                        sh "cd terraform_code/terraform.dev && terraform init"
                     }
                 }
                 stage('Formatting') {
                     steps {
-                        sh "cd mysql/terraform && terraform fmt"
+                        sh "cd terraform_code/terraform.dev && terraform fmt"
                     }
                 }
                 stage('Plan Terraform') {
                     steps {
-                        sh "cd mysql/terraform && terraform plan -out mytfplan"
+                        sh "cd terraform_code/terraform.dev && terraform plan -out mytfplan"
                     }
                 }
                 stage('Conformation to Setup MySQL instance') {
@@ -35,13 +39,13 @@ pipeline {
                 }
                 stage('Execute Terraform') {
                     steps {
-                        sh "cd mysql/terraform && terraform apply -auto-approve mytfplan" 
+                        sh "cd terraform_code/terraform.dev && terraform apply -auto-approve mytfplan" 
                     }
                 }
 	        stage('Archive IP') {
                     steps {
-                        sh "cd mysql/terraform && terraform output Instance_IP > instance_ip"
-                        archiveArtifacts "mysql/terraform/instance_ip"
+                        sh "cd terraform_code/terraform.dev && terraform output Instance_IP > instance_ip"
+                        archiveArtifacts "terraform_code/terraform.dev/instance_ip"
                     }
                 }
             }
@@ -53,17 +57,17 @@ pipeline {
             stages {
                 stage('Initialize Terraform') {
                     steps {
-                        sh "cd mysql/terraform.prod && terraform init"
+                        sh "cd terraform_code/terraform.prod && terraform init"
                     }
                 }
                 stage('Formatting') {
                     steps {
-                        sh "cd mysql/terraform.prod && terraform fmt"
+                        sh "cd terraform_code/terraform.prod && terraform fmt"
                     }
                 }
                 stage('Plan Terraform') {
                     steps {
-                        sh "cd mysql/terraform.prod && terraform plan -out mytfplan"
+                        sh "cd terraform_code/terraform.prod && terraform plan -out mytfplan"
                     }
                 }
                 stage('Conformation to Setup MySQL instance') {
@@ -73,13 +77,13 @@ pipeline {
                 }
                 stage('Execute Terraform') {
                     steps {
-                        sh "cd mysql/terraform.prod && terraform apply -auto-approve mytfplan"
+                        sh "cd terraform_code/terraform.prod && terraform apply -auto-approve mytfplan"
                     }
                 }
                 stage('Archive IP') {
                     steps {
-                        sh "cd mysql/terraform.prod && terraform output Instance_IP > instance_ip_prod"
-                        archiveArtifacts "mysql/terraform.prod/instance_ip_prod"
+                        sh "cd terraform_code/terraform.prod && terraform output Instance_IP > instance_ip_prod"
+                        archiveArtifacts "terraform_code/terraform.prod/instance_ip_prod"
                     }
                 }
             }
@@ -94,7 +98,7 @@ pipeline {
                 expression { params.Environment == 'dev' }
             }
             steps {                
-                sh 'hostip=$(cat mysql/terraform/instance_ip) && cd mysql/ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=${hostip}"'
+                sh 'hostip=$(cat terraform_code/terraform.dev/instance_ip) && cd mysql/ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=${hostip}"'
             }
         }
         stage('Execute Ansible Playbook on Prod') {
@@ -102,7 +106,7 @@ pipeline {
                 expression { params.Environment == 'prod' }
             }
             steps {
-                sh 'hostip=$(cat mysql/terraform.prod/instance_ip_prod) && cd mysql/ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=${hostip}"'
+                sh 'hostip=$(cat terraform_code/terraform.prod/instance_ip_prod) && cd mysql/ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=${hostip}"'
             }
         }
     }

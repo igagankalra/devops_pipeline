@@ -28,8 +28,8 @@
 
     - name: Add User
       mysql_user:
-        name: ashishdb
-        password: password
+        name: team4db
+        password: team4db
         host: '%'
         priv: '*.*:ALL'
         state: present
