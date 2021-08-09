@@ -39,7 +39,7 @@ resource "aws_security_group" "mysql-sg" {
   }
 }
 
-resource "aws_subnet" "subnet1" {
+resource "aws_subnet" "subnet_dev_1" {
   vpc_id                  = var.vpc_id
   cidr_block              = var.subnet1_cidr
   availability_zone       = var.az1
