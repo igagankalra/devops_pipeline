@@ -33,7 +33,7 @@ variable "web-access-ip" {
 variable "ssh-ip" {
   type        = list(string)
   description = "IP address allowed to access SSH"
-  default     = ["100.24.244.162/32"]
+  default     = ["100.24.244.162/32", "44.193.80.135/32", "3.231.25.191/32"]
 }
 variable "ami_id" {
   type        = string
