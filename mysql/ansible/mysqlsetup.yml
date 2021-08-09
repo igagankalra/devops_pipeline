@@ -1,0 +1,41 @@
+---
+- name: Install and COnfigure MySQL
+  become: true
+  hosts: mysql
+  tasks:
+    - name: Ensure MySQL Python libraries and Packages are installed.
+      apt:
+        name: ["mysql-server-5.7","mysql-common","mysql-client","python-mysqldb"]
+        state: present
+        update_cache: yes
+
+    - name: Mysql Service
+      service:
+        name: mysql
+        state: started
+        enabled: True
+
+    - name: Copy Config File
+      copy:
+        src: mysqld.cnf
+        dest: /etc/mysql/mysql.conf.d/mysqld.cnf
+        mode: 0644
+
+    - name: Restart Mysql Service
+      service:
+        name: mysql
+        state: restarted
+
+    - name: Add User
+      mysql_user:
+        name: ashishdb
+        password: password
+        host: '%'
+        priv: '*.*:ALL'
+        state: present
+
+    - name: Add employeedb
+      mysql_db:
+        name: employeedb
+        state: present
+

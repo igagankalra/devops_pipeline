@@ -1,0 +1,94 @@
+pipeline {
+  agent {
+    label 'TestLinux'
+  }
+  parameters {
+    choice(
+      name: 'Branch',
+      choices: ['master'],
+      description: 'Choose Branch'
+    )
+  }
+  stages {
+    stage('Intializing the project') {
+      steps {
+        echo 'Building Spring3Hibernate Application'
+      }
+    }
+    stage('Checking Code Stability') {
+      steps {
+        dir('spring3hibernate') {
+          sh 'mvn validate'
+          echo 'Checking Code Stability completed'
+        }
+      }
+    }
+    stage('Code Quality') {
+        parallel {
+            stage ('PMD') {
+                steps {
+                    dir('spring3hibernate') {
+                        sh 'mvn pmd:pmd'
+                    }
+                }
+            }
+            stage ('Bug Scan') {
+                steps {
+                    dir('spring3hibernate') {
+                        sh 'mvn findbugs:findbugs'
+                    }
+                }
+            }
+        }
+    }
+    stage('Security Checks - OWASP') {
+      steps {
+        dir('spring3hibernate') {
+          sh 'mvn dependency-check:check' 
+          sh 'mkdir -p target/dependency-check-report && cp target/dependency-check-report.html target/dependency-check-report/'         
+          echo 'Security Checks completed'
+        }
+      }
+    }
+    stage ('Run Unit Tests') {
+      steps {
+        dir('spring3hibernate') {
+          sh 'mvn test'
+        }
+      }
+    }
+    
+    stage ('Code Coverage Analysis') {
+      steps {
+        dir('spring3hibernate') {
+          sh 'mvn cobertura:cobertura'
+        }
+      }
+    }
+    stage ('Test Report') {
+      steps {
+        dir('spring3hibernate') {
+          sh 'mvn surefire-report:report'
+        }
+      }
+    }
+    stage('Build Package') {
+      steps {
+        dir('spring3hibernate') {
+          sh 'mvn package'
+          echo 'Build completed'
+        }
+      }
+    }
+  }
+  post {
+    always {
+      step([$class: 'CoberturaPublisher', autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: '**/coverage.xml', failUnhealthy: false, failUnstable: false, maxNumberOfBuilds: 0, onlyStable: false, sourceEncoding: 'ASCII', zoomCoverageChart: false])
+      junit testResults: 'spring3hibernate/target/surefire-reports/TEST-*.xml'
+      recordIssues enabledForFailure: true, tools: [mavenConsole(), java(), javaDoc()]
+      recordIssues enabledForFailure: true, tool: findBugs()
+      recordIssues enabledForFailure: true, tool: pmdParser(pattern: 'spring3hibernate/target/pmd.xml ')
+      publishHTML([allowMissing: false, alwaysLinkToLastBuild: true, keepAll: false, reportDir: 'spring3hibernate/target/dependency-check-report', reportFiles: 'dependency-check-report.html', reportName: 'OWASP Dependency-Check Report', reportTitles: 'OWASP Dependency-Check Report'])
+    }
+  }
+}

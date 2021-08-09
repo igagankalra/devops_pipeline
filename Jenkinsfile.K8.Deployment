@@ -1,0 +1,72 @@
+pipeline {
+    agent { label 'TestLinux' }
+    parameters {
+      choice(
+        name: 'Environment',
+        choices: ['dev','prod'],
+        description: 'Choose Environment'
+      )
+      string(
+        name: 'Image_Tag',
+        defaultValue: 'latest',
+        description: 'Provide image tag to deploy on Prod (e.g. - v1, v2, v3 etc.)'
+      )
+    }
+    stages {
+        stage('Deployment On Dev') {
+            when {
+                expression { params.Environment == 'dev' }
+	    }
+            stages {
+                stage('Deploy App (Recreate)') {
+                    steps {                    
+                        sh "cd SpringApp_K8_Deployments/dev && kubectl apply -f spring-recreate-dev.yml"
+                    }
+                }
+                stage('Apply Load Balancer') {
+                    steps {
+                        sh "cd SpringApp_K8_Deployments/dev && kubectl apply -f spring-dev-service-LB.yml"
+                    }
+                }
+		stage('Application IP') {
+                    steps {
+                        sh '''
+                           IP=$(tmpvar=$(kubectl describe service spring-dev | grep -A1 "LoadBalancer Ingress:" | awk "{print \$3}" | tr "\\n" ":"); echo ${tmpvar%/*}); 
+                           echo "Spring3Hibernet Application can be accessible on Development Environment at ${IP}"
+                        '''
+                    }
+                }
+            }
+        }
+        stage('Deployment On Prod') {
+            when {
+                expression { params.Environment == 'prod' }
+            }
+            stages {
+                stage('Add Image Tag') {
+                    steps {
+                        sh "cd SpringApp_K8_Deployments/prod && sed -i s/\\<image_tag\\>/${Image_Tag}/ spring-rolling-prod.yml"
+                    }
+                }
+                stage('Deploy App (Rolling)') {
+                    steps {                        
+                        sh "cd SpringApp_K8_Deployments/prod && kubectl apply -f spring-rolling-prod.yml"
+                    }
+                }
+                stage('Apply Load Balancer') {
+                    steps {
+                        sh "cd SpringApp_K8_Deployments/prod && kubectl apply -f spring-prod-service-LB.yml"
+                    }
+                }
+                stage('Application IP') {
+                    steps {
+                        sh '''
+			   IP=$(tmpvar=$(kubectl describe service spring-prod | grep -A1 "LoadBalancer Ingress:" | awk "{print $3}" | tr "\\n" ":"); echo ${tmpvar%/*});
+                           echo "Spring3Hibernet Application can be accessible on Production Environment at ${IP}"
+                        '''
+                    }
+                }
+            }
+         }
+    } 
+}
