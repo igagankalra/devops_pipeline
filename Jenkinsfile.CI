@@ -77,10 +77,10 @@ pipeline {
   post {
     always {
       step([$class: 'CoberturaPublisher', autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: '**/coverage.xml', failUnhealthy: false, failUnstable: false, maxNumberOfBuilds: 0, onlyStable: false, sourceEncoding: 'ASCII', zoomCoverageChart: false])
-      junit testResults: './target/surefire-reports/TEST-*.xml'
+      junit testResults: '**/target/surefire-reports/TEST-*.xml'
       recordIssues enabledForFailure: true, tools: [mavenConsole(), java(), javaDoc()]
       recordIssues enabledForFailure: true, tool: findBugs()
-      recordIssues enabledForFailure: true, tool: pmdParser(pattern: './target/pmd.xml ')
+      recordIssues enabledForFailure: true, tool: pmdParser(pattern: '**/target/pmd.xml ')
     }
   }
 }
