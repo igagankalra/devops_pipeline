@@ -1,5 +1,5 @@
 resource "aws_security_group" "mysql-sg" {
-  name   = "ashish-mysql-sg-prod"
+  name   = "team4-mysql-prod-sg"
   vpc_id = var.vpc_id
 
   ingress = [
@@ -34,8 +34,8 @@ resource "aws_security_group" "mysql-sg" {
   }
 
   tags = {
-    Name = "ashish_mysql_sg"
-    Environment = "Production"
+    Name = "team4_mysql_prod_sg"
+    Environment = "Prod"
   }
 }
 
@@ -45,8 +45,8 @@ resource "aws_subnet" "subnet1" {
   availability_zone       = var.az1
   map_public_ip_on_launch = var.map_public_ip
   tags                    = {
-    Name = "ashish_mysql_subnet"
-    Environment = "Production"
+    Name = "team4_mysql_prod_subnet"
+    Environment = "Prod"
   }
 }
 
@@ -58,7 +58,7 @@ resource "aws_instance" "mysql-instance" {
   key_name                    = var.key_name
   vpc_security_group_ids      = [aws_security_group.mysql-sg.id]
   tags = {
-    Name = "Ashish_MySQL_Host"
-    Environment = "Production"
+    Name = "team4_MySQL_host_prod_instance"
+    Environment = "Prod"
   }
 }

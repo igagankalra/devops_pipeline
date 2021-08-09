@@ -1,14 +1,14 @@
 variable "vpc_id" {
-  description = "VPC ID of Batch1VPC4"
-  default     = "vpc-043ca7a7a43fe1be1"
+  description = "VPC ID"
+  default     = "vpc-c8c44ab5"
 }
 variable "igw_id" {
-  description = "IGW ID of Batch1VPC4"
-  default     = "igw-0c2f29a7e9a4f947a"
+  description = "IGW ID"
+  default     = "igw-2dba4757"
 }
 variable "subnet1_cidr" {
   description = "The CIDR block for the subnet"
-  default     = "10.3.24.0/24"
+  default     = "172.31.112.0/20"
 }
 variable "az1" {
   description = "The availability zone for the subnet"
@@ -48,5 +48,5 @@ variable "instance_type" {
 }
 variable "key_name" {
   description = "key name"
-  default     = "ashish-key"
+  default     = "gagan-keys"
 }
