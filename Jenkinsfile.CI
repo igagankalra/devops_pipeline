@@ -1,4 +1,7 @@
 pipeline {
+  agent {
+    label 'master'
+  }
   parameters {
     choice(
       name: 'Branch',
