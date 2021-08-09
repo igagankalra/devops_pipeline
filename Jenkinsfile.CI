@@ -88,7 +88,7 @@ pipeline {
       recordIssues enabledForFailure: true, tools: [mavenConsole(), java(), javaDoc()]
       recordIssues enabledForFailure: true, tool: findBugs()
       recordIssues enabledForFailure: true, tool: pmdParser(pattern: '**/target/pmd.xml ')
-      publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: '**/target/dependency-check-report', reportFiles: 'dependency-check-report.html', reportName: 'OWASP Dependency-Check Report', reportTitles: 'OWASP Dependency-Check Report'])
+      publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: '/target/dependency-check-report', reportFiles: 'dependency-check-report.html', reportName: 'OWASP Dependency-Check Report', reportTitles: 'OWASP Dependency-Check Report'])
     }
   }
 }
