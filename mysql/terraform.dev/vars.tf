@@ -8,7 +8,7 @@ variable "igw_id" {
 }
 variable "subnet1_cidr" {
   description = "The CIDR block for the subnet"
-  default     = "10.3.23.0/24"
+  default     = "10.3.51.0/24"
 }
 variable "az1" {
   description = "The availability zone for the subnet"
