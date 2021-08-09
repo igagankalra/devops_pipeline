@@ -48,5 +48,5 @@ variable "instance_type" {
 }
 variable "key_name" {
   description = "key name"
-  default     = "gagan-perf-key-beats"
+  default     = "gagan-keys"
 }
