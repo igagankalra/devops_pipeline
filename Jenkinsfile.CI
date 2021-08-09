@@ -1,7 +1,4 @@
 pipeline {
-  agent {
-    label 'TestLinux'
-  }
   parameters {
     choice(
       name: 'Branch',
