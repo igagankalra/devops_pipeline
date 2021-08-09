@@ -35,7 +35,7 @@ pipeline {
                 }
                 stage('Execute Terraform') {
                     steps {
-                        sh "cd mysql/terraform && terraform apply -auto-approve mytfplan"
+                        sh "cd mysql/terraform && terraform apply -auto-approve mytfplan" 
                     }
                 }
 	        stage('Archive IP') {
