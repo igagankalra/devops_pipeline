@@ -38,7 +38,7 @@ variable "ssh-ip" {
 variable "ami_id" {
   type        = string
   description = "AMI ID"
-  default     = "ami-0747bdcabd34c712a"
+  default     = "ami-0c2b8ca1dad447f8a"
 }
 
 variable "instance_type" {
