@@ -43,16 +43,7 @@ pipeline {
             }
         }
     }
-    stage('Security Checks - OWASP') {
-      steps {
-        dir('.') {
-          sh 'mvn dependency-check:check' 
-          sh 'mkdir -p target/dependency-check-report && cp target/dependency-check-report.html target/dependency-check-report/'         
-          echo 'Security Checks completed'
-        }
-      }
-    }
-    stage ('Run Unit Tests') {
+        stage ('Run Unit Tests') {
       steps {
         dir('.') {
           sh 'mvn test'
@@ -90,7 +81,6 @@ pipeline {
       recordIssues enabledForFailure: true, tools: [mavenConsole(), java(), javaDoc()]
       recordIssues enabledForFailure: true, tool: findBugs()
       recordIssues enabledForFailure: true, tool: pmdParser(pattern: './target/pmd.xml ')
-      publishHTML([allowMissing: false, alwaysLinkToLastBuild: true, keepAll: false, reportDir: './target/dependency-check-report', reportFiles: 'dependency-check-report.html', reportName: 'OWASP Dependency-Check Report', reportTitles: 'OWASP Dependency-Check Report'])
     }
   }
 }
