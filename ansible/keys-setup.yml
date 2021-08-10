@@ -6,7 +6,6 @@
       - name: "ubuntu"
         ssh_key: "~/.ssh/id_rsa.pub"
     packages:
-      - vim
       - wget
       - curl
       - htop
