@@ -143,11 +143,11 @@ pipeline {
   post {
     always {
       step([$class: 'CoberturaPublisher', autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: '**/coverage.xml', failUnhealthy: false, failUnstable: false, maxNumberOfBuilds: 0, onlyStable: false, sourceEncoding: 'ASCII', zoomCoverageChart: false])
-      junit testResults: 'spring3hibernate/target/surefire-reports/TEST-*.xml'
+      junit testResults: '**/target/surefire-reports/TEST-*.xml'
       recordIssues enabledForFailure: true, tools: [mavenConsole(), java(), javaDoc()]
       recordIssues enabledForFailure: true, tool: findBugs()
-      recordIssues enabledForFailure: true, tool: pmdParser(pattern: 'spring3hibernate/target/pmd.xml ')
-      publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'spring3hibernate/target/dependency-check-report', reportFiles: 'dependency-check-report.html', reportName: 'OWASP Dependency-Check Report', reportTitles: 'OWASP Dependency-Check Report'])
+      recordIssues enabledForFailure: true, tool: pmdParser(pattern: '**/target/pmd.xml ')
+      publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'target/dependency-check-report', reportFiles: 'dependency-check-report.html', reportName: 'OWASP Dependency-Check Report', reportTitles: 'OWASP Dependency-Check Report'])
       cleanWs()
     }
   }
