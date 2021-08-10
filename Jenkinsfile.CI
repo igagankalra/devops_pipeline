@@ -87,7 +87,7 @@ pipeline {
     stage('Start Docker') {
       steps {
         dir('.') {
-          sh 'sudo systemctl start docker'
+          sh 'systemctl start docker'
           echo 'Docker started.'
         }
       }
