@@ -105,7 +105,7 @@ pipeline {
     stage('Push Docker Image') {
       steps {
         dir('.') {
-          sh 'docker push igagankalra/team4-spring-devimage:latest'
+          sh 'sudo docker push igagankalra/team4-spring-devimage:latest'
 	        sh 'docker rmi -f $(docker images -aq)'
           echo 'Image pushed to Docker Hub'
         }
