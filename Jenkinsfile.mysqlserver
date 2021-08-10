@@ -22,7 +22,7 @@ pipeline {
                         sh "cd terraform_code/terraform.dev && terraform init"
                     }
                 }
-                stage('Formatting') {
+                stage('Lint Terraform') {
                     steps {
                         sh "cd terraform_code/terraform.dev && terraform fmt"
                     }
@@ -37,12 +37,12 @@ pipeline {
                         input 'Please check and approve configurations to setup AWS infrastructure'
                     }
                 }
-                stage('Execute Terraform') {
+                stage('Execute Terraform Code') {
                     steps {
                         sh "cd terraform_code/terraform.dev && terraform apply -auto-approve mytfplan" 
                     }
                 }
-	        stage('Archive IP') {
+	        stage('Save the IP') {
                     steps {
                         sh "cd terraform_code/terraform.dev && terraform output Instance_IP > instance_ip"
                         archiveArtifacts "terraform_code/terraform.dev/instance_ip"
