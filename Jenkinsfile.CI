@@ -66,7 +66,7 @@ pipeline {
         }
       }
     }
-    
+
     stage('Security Checks - OWASP') {
       steps {
         sh 'mvn dependency-check:check' 
@@ -83,36 +83,6 @@ pipeline {
         }
       }
     }
-
-    stage('Build Docker Image') {
-      steps {
-        dir('.') {
-          sh 'docker build -t team4/spring_image -f Dockerfile.deploy.dev .'
-          echo 'Build completed'
-        }
-      }
-    }
-
-    stage('Tag Docker Image') {
-      steps {
-        dir('.') {
-          sh 'docker image tag team4/spring_image:latest igagankalra/team4-spring-devimage:latest'
-          echo 'Image Tagged'
-        }
-      }
-    }
-  
-    stage('Push Docker Image') {
-      steps {
-        dir('.') {
-          sh 'docker push igagankalra/team4-spring-devimage:latest'
-	        sh 'docker rmi -f $(docker images -aq)'
-          echo 'Image pushed to Docker Hub'
-        }
-      }
-    }
-  }
-
 
   post {
     always {
