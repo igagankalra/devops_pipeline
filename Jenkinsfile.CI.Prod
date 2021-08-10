@@ -148,6 +148,7 @@ pipeline {
       recordIssues enabledForFailure: true, tool: findBugs()
       recordIssues enabledForFailure: true, tool: pmdParser(pattern: 'spring3hibernate/target/pmd.xml ')
       publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'spring3hibernate/target/dependency-check-report', reportFiles: 'dependency-check-report.html', reportName: 'OWASP Dependency-Check Report', reportTitles: 'OWASP Dependency-Check Report'])
+      cleanWs()
     }
   }
 }
