@@ -122,7 +122,7 @@ pipeline {
     stage('Tag Docker Image') {
       steps {
         dir('.') {
-          sh 'docker image tag team4/spring_image:${Release_Image_Tag} igagankalra/team4-spring:${Release_Image_Tag}'
+          sh 'docker image tag team4/spring_image igagankalra/team4-spring:${Release_Image_Tag}'
           echo 'Image Tagged'
         }
       }
