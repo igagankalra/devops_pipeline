@@ -44,8 +44,8 @@ pipeline {
                 }
 	        stage('Save the IP') {
                     steps {
-                        sh "cd terraform_code/terraform.dev && terraform output Instance_IP > instance_ip"
-                        archiveArtifacts "terraform_code/terraform.dev/instance_ip"
+                        sh "cd terraform_code/terraform.dev && terraform output Instance_IP > instance_ip_dev"
+                        archiveArtifacts "terraform_code/terraform.dev/instance_ip_dev"
                     }
                 }
             }
