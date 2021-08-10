@@ -1,0 +1,26 @@
+---
+- hosts: mysql
+  become: 'yes'
+  vars:
+    user:
+      - name: "ubuntu"
+        ssh_key: "ssh-rsa …"
+    packages:
+      - vim
+      - wget
+      - curl
+      - htop
+  tasks:
+    - name: Add SSH public key
+      authorized_key:
+        user: '"{{ item.name }}"'
+        key: '"{{ item.ssh_key }}"'
+      loop:
+        - '"{{ user }}"'
+    - name: Ensure a list of packages installed
+      apt:
+        name: '"{{ packages }}"'
+        state: present
+    - name: All done!
+      debug:
+        msg: Packages have been successfully installed

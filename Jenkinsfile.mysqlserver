@@ -98,7 +98,7 @@ pipeline {
                 expression { params.Environment == 'dev' }
             }
             steps {                
-                sh 'hostip=$(cat terraform_code/terraform.dev/instance_ip) && cd ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=54.89.174.101"'
+                sh 'hostip=$(cat terraform_code/terraform.dev/instance_ip) && cd ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=18.207.116.111"'
             }
         }
         stage('Execute Ansible Playbook on Prod') {
