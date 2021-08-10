@@ -4,7 +4,7 @@
   vars:
     user:
       - name: "ubuntu"
-        ssh_key: "ssh-rsa …"
+        ssh_key: "~/.ssh/id_rsa.pub"
     packages:
       - vim
       - wget
