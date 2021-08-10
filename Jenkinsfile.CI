@@ -84,6 +84,15 @@ pipeline {
       }
     }
 
+    stage('Start Docker') {
+      steps {
+        dir('.') {
+          sh 'sudo systemctl start docker'
+          echo 'Docker started.'
+        }
+      }
+    }
+
     stage('Build Docker Image') {
       steps {
         dir('.') {
