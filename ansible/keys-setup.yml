@@ -6,16 +6,17 @@
       - name: "ubuntu"
         ssh_key: "~/.ssh/id_rsa.pub"
     packages:
+      - vim
       - wget
       - curl
       - htop
   tasks:
-    # - name: Add SSH public key
-    #   authorized_key:
-    #     user: '"{{ item.name }}"'
-    #     key: '"{{ item.ssh_key }}"'
-    #   loop:
-    #     - '"{{ user }}"'
+    - name: Add SSH public key
+      authorized_key:
+        user: '"{{ item.name }}"'
+        key: '"{{ item.ssh_key }}"'
+      loop:
+        - '"{{ user }}"'
     - name: Ensure a list of packages installed
       apt:
         name: '"{{ packages }}"'
