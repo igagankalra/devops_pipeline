@@ -1,17 +1,25 @@
 pipeline {
-  agent {
-    label 'TestLinux'
+  agent 'any'
+
+	environment {
+		DOCKERHUB_CREDENTIALS=credentials('docker_hub_creds')
+	}
+
+  tools {
+    jdk 'java8'
+    maven 'maven'
   }
+
   parameters {
     choice(
       name: 'Branch',
-      choices: ['master'],
+      choices: ['master', "gagankalra"],
       description: 'Choose Branch'
     )
     string(
-        name: 'Image_Tag',
-        defaultValue: 'v1',
-        description: 'Provide image tag to deploy on Prod (e.g. - v1, v2, v3 etc.)'
+        name: 'Release_Image_Tag',
+        defaultValue: '1.0.0',
+        description: 'Provide image tag to deploy on Prod (e.g. - 1.0.0, 2.0.0, 3.0.0 etc.)'
     )
   }
   stages {
@@ -22,7 +30,7 @@ pipeline {
     }
     stage('MVN Clean') {
       steps {
-        dir('spring3hibernate') {
+        dir('.') {
           sh 'mvn clean'
           echo 'MVN Clean completed'
         }
@@ -30,7 +38,7 @@ pipeline {
     }
     stage('Checking Code Stability') {
       steps {
-        dir('spring3hibernate') {
+        dir('.') {
           sh 'mvn validate'
           echo 'Checking Code Stability completed'
         }
@@ -40,14 +48,14 @@ pipeline {
         parallel {
             stage ('PMD') {
                 steps {
-                    dir('spring3hibernate') {
+                    dir('.') {
                         sh 'mvn pmd:pmd'
                     }
                 }
             }
             stage ('Bug Scan') {
                 steps {
-                    dir('spring3hibernate') {
+                    dir('.') {
                         sh 'mvn findbugs:findbugs'
                     }
                 }
@@ -56,7 +64,7 @@ pipeline {
     }
     stage('Security Checks - OWASP') {
       steps {
-        dir('spring3hibernate') {
+        dir('.') {
           sh 'mvn dependency-check:check' 
           sh 'mkdir -p target/dependency-check-report && cp target/dependency-check-report.html target/dependency-check-report/'         
           echo 'Security Checks completed'
@@ -65,7 +73,7 @@ pipeline {
     }
     stage ('Run Unit Tests') {
       steps {
-        dir('spring3hibernate') {
+        dir('.') {
           sh 'mvn test'
         }
       }
@@ -73,48 +81,64 @@ pipeline {
     
     stage ('Code Coverage Analysis') {
       steps {
-        dir('spring3hibernate') {
+        dir('.') {
           sh 'mvn cobertura:cobertura'
         }
       }
     }
     stage ('Test Report') {
       steps {
-        dir('spring3hibernate') {
+        dir('.') {
           sh 'mvn surefire-report:report'
         }
       }
     }
     stage('Build Package') {
       steps {
-        dir('spring3hibernate') {
+        dir('.') {
           sh 'mvn package'
           echo 'Build completed'
         }
       }
     }
-    stage('Conformation to deploy with tomcat build Docker Image') {
-            steps {
-                input 'Please check and approve for creating docker image'
-            }
-    }
+    
+		stage('Login') {
+
+			steps {
+				sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+        echo 'Login Successful'
+			}
+		}
+
     stage('Build Docker Image') {
       steps {
-        dir('spring3hibernate') {
-          sh 'docker build -t eashish/spring:${Image_Tag} -f Dockerfile.deploy.prod .'
+        dir('.') {
+          sh 'docker build -t team4/spring_image -f Dockerfile.deploy.prod .'
           echo 'Build completed'
         }
       }
     }
-    stage('Push Docker Image') {
+
+    stage('Tag Docker Image') {
       steps {
-        dir('spring3hibernate') {
-          sh 'docker push eashish/spring:${Image_Tag}'
-	  sh 'docker rmi eashish/spring:${Image_Tag}'
-          echo 'image pushed completed'
+        dir('.') {
+          sh 'docker image tag team4/spring_image:${Release_Image_Tag} igagankalra/team4-spring:${Release_Image_Tag}'
+          echo 'Image Tagged'
         }
       }
     }
+  
+    stage('Push Docker Image') {
+      steps {
+        dir('.') {
+          sh 'docker push igagankalra/team4-spring:${Release_Image_Tag}'
+          sh 'docker rmi igagankalra/team4-spring:${Release_Image_Tag}'
+          echo 'Image pushed to Docker Hub'
+        }
+      }
+    }
+  
+
   }
   post {
     always {
