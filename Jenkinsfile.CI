@@ -1,5 +1,9 @@
 pipeline {
   agent 'any'
+
+	environment {
+		DOCKERHUB_CREDENTIALS=credentials('docker_hub_creds')
+	}
   tools {
     jdk 'java8'
     maven 'maven'
@@ -83,7 +87,15 @@ pipeline {
         }
       }
     }
+    
+		stage('Login') {
 
+			steps {
+				sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+        echo 'Login Successful'
+			}
+		}
+    
     stage('Build Docker Image') {
       steps {
         dir('.') {
@@ -105,11 +117,9 @@ pipeline {
     stage('Push Docker Image') {
       steps {
         dir('.') {
-          withDockerRegistry(credentialsId: 'docker_hub_creds', url: 'https://hub.docker.com') {
-            sh 'docker push igagankalra/team4-spring-devimage:latest'
-            sh 'docker rmi -f $(docker images -aq)'
-            echo 'Image pushed to Docker Hub'
-          }
+          sh 'docker push igagankalra/team4-spring-devimage:latest'
+          sh 'docker rmi -f $(docker images -aq)'
+          echo 'Image pushed to Docker Hub'
         }
       }
     }
