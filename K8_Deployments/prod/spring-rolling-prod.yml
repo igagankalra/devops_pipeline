@@ -1,15 +1,15 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: spring-prod
+  name: team4-spring-prod
   labels:
-    app: spring
+    app: spring-prod
     env: prod
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: spring
+      app: spring-prod
       env: prod
   strategy:
     type: RollingUpdate
@@ -19,11 +19,11 @@ spec:
   template:
     metadata:
       labels:
-        app: spring
+        app: spring-prod
         env: prod
     spec:
       containers:
-      - image: eashish/spring:<image_tag>
+      - image: igagankalra/team4-spring
         name: spring-prod
         ports:
         - containerPort: 8080
