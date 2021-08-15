@@ -1,3 +1,4 @@
+def hostip
 pipeline {
   agent 'any'
   tools {
@@ -84,7 +85,7 @@ pipeline {
             }
             steps { 
                 sh 'hostip=$(cat terraform_code/terraform.dev/instance_ip_dev)'
-                echo $hostip
+                echo ${hostip}
                 sh 'cd ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=${hostip_dev}"'
             }
         }
