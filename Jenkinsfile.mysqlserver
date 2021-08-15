@@ -82,7 +82,8 @@ pipeline {
             when {
                 expression { params.Environment == 'dev' }
             }
-            steps {                
+            steps { 
+                sh 'sleep 10s'          
                 sh 'hostip_dev=$(cat terraform_code/terraform.dev/instance_ip_dev) && cd ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=${hostip_dev}"'
             }
         }
