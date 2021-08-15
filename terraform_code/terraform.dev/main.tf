@@ -62,3 +62,9 @@ resource "aws_instance" "mysql-instance" {
     Environment = "Dev"
   }
 }
+
+
+resource "local_file" "Instance_IP_Out" {
+    content  = aws_instance.mysql-instance.public_ip
+    filename = "instance_ip_dev"
+}
