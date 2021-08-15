@@ -84,7 +84,7 @@ pipeline {
             }
             steps { 
                 sh 'sleep 10s'          
-                sh 'hostip_dev=$(cat terraform_code/terraform.dev/instance_ip_dev) && cd ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=${hostip_dev}"'
+                sh 'hostip_dev=$(cat terraform_code/terraform.dev/instance_ip_dev) |  tr -d '"' && cd ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=${hostip_dev}"'
             }
         }
         stage('Execute Ansible Playbook on Prod') {
@@ -92,7 +92,7 @@ pipeline {
                 expression { params.Environment == 'prod' }
             }
             steps {
-                sh 'hostip_prod=$(cat terraform_code/terraform.prod/instance_ip_prod) && cd ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=${hostip_prod}"'
+                sh 'hostip_prod=$(cat terraform_code/terraform.prod/instance_ip_prod) |  tr -d '"' && cd ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=${hostip_prod}"'
             }
         }
     }
