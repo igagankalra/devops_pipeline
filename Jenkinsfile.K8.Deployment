@@ -1,5 +1,12 @@
 pipeline {
-    agent { label 'TestLinux' }
+    agent 'any'
+
+
+
+    tools {
+        jdk 'java8'
+        maven 'maven'
+    }
     parameters {
       choice(
         name: 'Environment',
