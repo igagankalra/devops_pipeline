@@ -7,7 +7,7 @@ pipeline {
         description: 'Choose Environment'
       )
       string(
-        name: 'Image_Tag',
+        name: 'Release_Image_Tag',
         defaultValue: 'latest',
         description: 'Provide image tag to deploy on Prod (e.g. - 1.0.0, 2.0.0, 3.0.0 etc.)'
       )
@@ -20,12 +20,12 @@ pipeline {
             stages {
                 stage('Deploy App (Recreate)') {
                     steps {                    
-                        sh "cd SpringApp_K8_Deployments/dev && kubectl apply -f spring-recreate-dev.yml"
+                        sh "cd K8_Deployments/dev && kubectl apply -f spring-dev.yml"
                     }
                 }
                 stage('Apply Load Balancer') {
                     steps {
-                        sh "cd SpringApp_K8_Deployments/dev && kubectl apply -f spring-dev-service-LB.yml"
+                        sh "cd K8_Deployments/dev && kubectl apply -f spring-service-LB.yml"
                     }
                 }
 		stage('Application IP') {
@@ -45,12 +45,12 @@ pipeline {
             stages {
                 stage('Add Image Tag') {
                     steps {
-                        sh "cd SpringApp_K8_Deployments/prod && sed -i s/\\<image_tag\\>/${Image_Tag}/ spring-rolling-prod.yml"
+                        sh "cd K8_Deployments/prod && sed -i s/\\<image_tag\\>/${Release_Image_Tag}/ spring-prod.yml"
                     }
                 }
                 stage('Deploy App (Rolling)') {
                     steps {                        
-                        sh "cd SpringApp_K8_Deployments/prod && kubectl apply -f spring-rolling-prod.yml"
+                        sh "cd K8_Deployments/prod && kubectl apply -f spring-prod.yml"
                     }
                 }
                 stage('Apply Load Balancer') {

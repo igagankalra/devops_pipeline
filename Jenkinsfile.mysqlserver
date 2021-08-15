@@ -42,12 +42,12 @@ pipeline {
                         sh "cd terraform_code/terraform.dev && terraform apply -auto-approve mytfplan" 
                     }
                 }
-	        // stage('Save the IP') {
-            //         steps {
-            //             sh "cd terraform_code/terraform.dev && terraform output Instance_IP > instance_ip_dev"
-            //             archiveArtifacts "terraform_code/terraform.dev/instance_ip_dev"
-            //         }
-            //     }
+	        stage('Save the IP') {
+                    steps {
+                        sh "cd terraform_code/terraform.dev && terraform output Instance_IP > instance_ip_dev"
+                        archiveArtifacts "terraform_code/terraform.dev/instance_ip_dev"
+                    }
+                }
             }
         }
         stage('Setup MySQL for Prod'){

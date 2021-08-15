@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: team4-spring-dev
+  name: spring-dev
   labels:
     app: team4-spring
     env: dev
@@ -11,7 +11,7 @@ spec:
       app: team4-spring
       env: dev
   strategy:
-    type: Recreate
+    type: Recreate 
   template:
     metadata:
       labels:

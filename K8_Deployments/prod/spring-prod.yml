@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: team4-spring-prod
+  name: spring-prod
   labels:
     app: spring-prod
     env: prod
@@ -23,7 +23,7 @@ spec:
         env: prod
     spec:
       containers:
-      - image: igagankalra/team4-spring
+      - image: igagankalra/team4-spring 
         name: spring-prod
         ports:
         - containerPort: 8080
