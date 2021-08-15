@@ -1,5 +1,5 @@
 ---
-- name: Install and COnfigure MySQL
+- name: Install and Configure MySQL
   become: true
   hosts: mysql
   tasks:
