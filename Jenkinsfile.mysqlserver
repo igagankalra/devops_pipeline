@@ -32,11 +32,6 @@ pipeline {
                         sh "cd terraform_code/terraform.dev && terraform plan -out mytfplan"
                     }
                 }
-                stage('Conformation to Setup MySQL instance') {
-                    steps {
-                        input 'Please check and approve configurations to setup AWS infrastructure'
-                    }
-                }
                 stage('Execute Terraform Code') {
                     steps {
                         sh "cd terraform_code/terraform.dev && terraform apply -auto-approve mytfplan" 
@@ -70,11 +65,6 @@ pipeline {
                         sh "cd terraform_code/terraform.prod && terraform plan -out mytfplan"
                     }
                 }
-                stage('Conformation to Setup MySQL instance') {
-                    steps {
-                        input 'Please check and approve configurations to setup AWS infrastructure'
-                    }
-                }
                 stage('Execute Terraform') {
                     steps {
                         sh "cd terraform_code/terraform.prod && terraform apply -auto-approve mytfplan"
@@ -86,11 +76,6 @@ pipeline {
                         archiveArtifacts "terraform_code/terraform.prod/instance_ip_prod"
                     }
                 }
-            }
-        }
-        stage('Confirmation to setup MySQL'){
-            steps {
-                input 'Please check and approve to setup MySQL through Ansible Playbook'
             }
         }
         stage('Execute Ansible Playbook on Dev') {
