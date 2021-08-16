@@ -49,7 +49,7 @@ pipeline {
                     steps {
                         dir("terraform_code/terraform.dev"){
                             sh "terraform output Instance_IP > instance_ip_dev"
-                            archiveArtifacts "terraform_code/terraform.dev/instance_ip_dev"
+                            archiveArtifacts "instance_ip_dev"
                         }
                     }
                 }
@@ -92,7 +92,7 @@ pipeline {
                     steps {
                         dir("terraform_code/terraform.prod"){
                             sh "terraform output Instance_IP > instance_ip_prod"
-                            archiveArtifacts "terraform_code/terraform.prod/instance_ip_prod"
+                            archiveArtifacts "instance_ip_prod"
                         }
                     }
                 }
