@@ -33,7 +33,7 @@ pipeline {
                 stage('Apply Load Balancer') {
                     steps {
                         dir("K8/dev"){
-                            sh "/usr/local/bin/kubectl apply -f spring-dev-service-LB.yml"
+                            sh "/usr/local/bin/kubectl apply -f spring-dev-node-port.yml"
                         }
                     }
                 }
@@ -69,7 +69,7 @@ pipeline {
                 stage('Apply Load Balancer') {
                     steps {
                         dir("K8/prod"){
-                            sh "/usr/local/bin/kubectl apply -f spring-dev-node-port.yml"
+                            sh "/usr/local/bin/kubectl apply -f spring-prod-service-LB.yml"
                         }
                     }
                 }
