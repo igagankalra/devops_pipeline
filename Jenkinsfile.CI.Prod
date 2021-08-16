@@ -131,8 +131,8 @@ pipeline {
     stage('Push Docker Image') {
       steps {
         dir('.') {
-          sh 'docker push igagankalra/team4-spring:${Release_Image_Tag}'
-          sh 'docker rmi igagankalra/team4-spring:${Release_Image_Tag}'
+          sh 'docker push igagankalra/prod-srping:${Release_Image_Tag}'
+          sh 'docker rmi igagankalra/prod-spring:${Release_Image_Tag}'
           echo 'Image pushed to Docker Hub'
         }
       }
