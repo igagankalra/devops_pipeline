@@ -15,7 +15,7 @@ pipeline {
   parameters {
     choice(
       name: 'Branch',
-      choices: ['master', 'deploy'],
+      choices: ['master', 'deploy', 'GaganKalra'],
       description: 'Choose Branch'
     )
     choice(
