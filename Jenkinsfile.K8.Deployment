@@ -68,7 +68,7 @@ pipeline {
                 stage('Application IP') {
                     steps {
                         sh '''
-			   IP=$(tmpvar=$(/usr/local/bin/kubectl describe service spring-prod | grep -A1 "LoadBalancer Ingress:" | awk "{print $3}" | tr "\\n" ":"); echo ${tmpvar%/*});
+			   IP=$(tmpvar=$(/usr/local/bin/kubectl describe service team4-spring-prod | grep -A1 "LoadBalancer Ingress:" | awk "{print $3}" | tr "\\n" ":"); echo ${tmpvar%/*});
                            echo "Spring3Hibernet Application can be accessible on Production Environment at ${IP}"
                         '''
                     }
