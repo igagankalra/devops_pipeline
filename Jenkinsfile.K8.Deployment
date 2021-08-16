@@ -32,7 +32,7 @@ pipeline {
                 }
                 stage('Apply Load Balancer') {
                     steps {
-                        sh "cd K8_Deployments/dev && /usr/local/bin/kubectl apply -f spring-service-LB.yml"
+                        sh "cd K8_Deployments/dev && /usr/local/bin/kubectl apply -f spring-dev-service-LB.yml"
                     }
                 }
 		stage('Application IP') {

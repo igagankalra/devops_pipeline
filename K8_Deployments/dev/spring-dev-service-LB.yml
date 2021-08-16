@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: team4-spring-dev
+  name: spring-dev
 spec:
   type: LoadBalancer
   ports:
   - protocol: TCP
     port: 8080
   selector:
-    app: team4-spring
+    app: spring
     env: dev
