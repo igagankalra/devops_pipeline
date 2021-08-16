@@ -5,10 +5,12 @@ pipeline {
 		DOCKERHUB_CREDENTIALS=credentials('docker_hub_creds')
 	}
 
+
   tools {
     jdk 'java8'
     maven 'maven'
   }
+
 
   parameters {
     choice(
@@ -27,277 +29,406 @@ pipeline {
         description: 'Provide image tag to deploy on Prod (e.g. - 1.0.0, 2.0.0, 3.0.0 etc.)'
     )
   }
+
+
   stages {
-    stage('Intializing the project') {
-      steps {
-        echo 'Building Spring3Hibernate Application'
-      }
-    }
-    stage('MVN Clean') {
-      steps {
-        dir('.') {
-          sh 'mvn clean'
-          echo 'MVN Clean completed'
+
+        stage('Setup MySQL for Dev'){
+            when {
+                expression { params.Environment == 'dev' }
+            } 
+            stages {
+                stage('Initialize Terraform') {
+                    steps {                    
+                        sh "cd terraform_code/terraform.dev && terraform init"
+                    }
+                }
+                stage('Lint Terraform') {
+                    steps {
+                        sh "cd terraform_code/terraform.dev && terraform fmt"
+                    }
+                }
+                stage('Plan Terraform') {
+                    steps {
+                        sh "cd terraform_code/terraform.dev && terraform plan -out mytfplan"
+                    }
+                }
+                stage('Execute Terraform Code') {
+                    steps {
+                        sh "cd terraform_code/terraform.dev && terraform apply -auto-approve mytfplan" 
+                    }
+                }
+                stage('Save the IP') {
+                          steps {
+                              sh "cd terraform_code/terraform.dev && terraform output Instance_IP > instance_ip_dev"
+                              archiveArtifacts "terraform_code/terraform.dev/instance_ip_dev"
+                          }
+                      }
+            }
         }
-      }
-    }
-    stage('Checking Code Stability') {
-      steps {
-        dir('.') {
-          sh 'mvn validate'
-          echo 'Checking Code Stability completed'
-        }
-      }
-    }
-    stage('Code Quality') {
-        parallel {
-            stage ('PMD') {
-                steps {
-                    dir('.') {
-                        sh 'mvn pmd:pmd'
+
+        stage('Setup MySQL for Prod'){
+            when {
+                expression { params.Environment == 'prod' }
+            }
+            stages {
+                stage('Initialize Terraform') {
+                    steps {
+                        sh "cd terraform_code/terraform.prod && terraform init"
+                    }
+                }
+                stage('Formatting') {
+                    steps {
+                        sh "cd terraform_code/terraform.prod && terraform fmt"
+                    }
+                }
+                stage('Plan Terraform') {
+                    steps {
+                        sh "cd terraform_code/terraform.prod && terraform plan -out mytfplan"
+                    }
+                }
+                stage('Execute Terraform') {
+                    steps {
+                        sh "cd terraform_code/terraform.prod && terraform apply -auto-approve mytfplan"
+                    }
+                }
+                stage('Archive IP') {
+                    steps {
+                        sh "cd terraform_code/terraform.prod && terraform output Instance_IP > instance_ip_prod"
+                        archiveArtifacts "terraform_code/terraform.prod/instance_ip_prod"
                     }
                 }
             }
-            stage ('Bug Scan') {
-                steps {
-                    dir('.') {
-                        sh 'mvn findbugs:findbugs'
-                    }
+        }
+
+        stage('Execute Ansible Playbook on Dev') {
+            when {
+                expression { params.Environment == 'dev' }
+            }
+            steps { 
+                script{
+                    sleep 20
+                    sh 'sed -i \'s/"//g\' terraform_code/terraform.dev/instance_ip_dev && hostip_dev=$(cat terraform_code/terraform.dev/instance_ip_dev) && cd ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=${hostip_dev}"'
+
                 }
             }
         }
-    }
-    stage('Security Checks - OWASP') {
-      steps {
-        dir('.') {
-          sh 'mvn dependency-check:check' 
-          sh 'mkdir -p target/dependency-check-report && cp target/dependency-check-report.html target/dependency-check-report/'         
-          echo 'Security Checks completed'
-        }
-      }
-    }
-    stage ('Run Unit Tests') {
-      steps {
-        dir('.') {
-          sh 'mvn test'
-        }
-      }
-    }
-    
-    stage ('Code Coverage Analysis') {
-      steps {
-        dir('.') {
-          sh 'mvn cobertura:cobertura'
-        }
-      }
-    }
-    stage ('Test Report') {
-      steps {
-        dir('.') {
-          sh 'mvn surefire-report:report'
-        }
-      }
-    }
-    stage('Build Package') {
-      steps {
-        dir('.') {
-          sh 'mvn package'
-          echo 'Build completed'
-        }
-      }
-    }
-    
-		stage('Login') {
 
-			steps {
-				sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-        echo 'Login Successful'
-			}
-		}
+        stage('Execute Ansible Playbook on Prod') {
+            when {
+                expression { params.Environment == 'prod' }
+            }
+            steps {
+                script{
+                    sleep 20
+                    sh 'sed -i \'s/"//g\' terraform_code/terraform.prod/instance_ip_prod && hostip_prod=$(cat terraform_code/terraform.prod/instance_ip_prod) && cd ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=${hostip_prod}"'
 
-    stage('Build Docker Image') {
-      steps {
-        dir('.') {
-          sh 'docker build -t team4/spring_image -f Dockerfile.deploy.prod .'
-          echo 'Build completed'
+                }
+            }
         }
-      }
-    }
 
-    stage('Tag Docker Image') {
-      steps {
-        dir('.') {
-          sh 'docker image tag team4/spring_image igagankalra/team4-spring:${Release_Image_Tag}'
-          echo 'Image Tagged'
-        }
-      }
-    }
-  
-    stage('Push Docker Image') {
-      steps {
-        dir('.') {
-          sh 'docker push igagankalra/team4-spring:${Release_Image_Tag}'
-          sh 'docker rmi igagankalra/team4-spring:${Release_Image_Tag}'
-          echo 'Image pushed to Docker Hub'
-        }
-      }
-    }
+        stage('CI for Dev'){
+            when {
+                expression { params.Environment == 'dev' }
+            } 
+            stages{
 
+                stage('Intializing the project') {
+                  steps {
+                    echo 'Building Spring3Hibernate Application'
+                  }
+                }
+                stage('Checking Code Stability') {
+                  steps {
+                    dir('.') {
+                      sh 'mvn validate'
+                      echo 'Checking Code Stability completed'
+                    }
+                  }
+                }
+                stage('Code Quality') {
+                    parallel {
+                        stage ('PMD') {
+                            steps {
+                                dir('.') {
+                                    sh 'mvn pmd:pmd'
+                                }
+                            }
+                        }
+                        stage ('Bug Scan') {
+                            steps {
+                                dir('.') {
+                                    sh 'mvn findbugs:findbugs'
+                                }
+                            }
+                        }
+                    }
+                }
+                stage ('Run Unit Tests') {
+                  steps {
+                    dir('.') {
+                      sh 'mvn test'
+                    }
+                  }
+                }
+                
+                stage ('Code Coverage Analysis') {
+                  steps {
+                    dir('.') {
+                      sh 'mvn cobertura:cobertura'
+                    }
+                  }
+                }
+              
+                stage ('Test Report') {
+                  steps {
+                    dir('.') {
+                      sh 'mvn surefire-report:report'
+                    }
+                  }
+                }
+                
+                stage('Security Checks - OWASP') {
+                  steps {
+                    sh 'mvn dependency-check:check' 
+                    sh 'mkdir -p target/dependency-check-report && cp target/dependency-check-report.html target/dependency-check-report/'         
+                    echo 'Security Checks completed'
+                  }
+                }
 
+                stage('Build Package') {
+                  steps {
+                    dir('.') {
+                      sh 'mvn package'
+                      echo 'Build completed'
+                    }
+                  }
+                }
+                
+                stage('Login') {
+                  steps {
+                    sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                    echo 'Login Successful'
+                  }
+                }
+                
+                stage('Build Docker Image') {
+                  steps {
+                    dir('.') {
+                      sh 'docker build -t team4/spring_image -f Dockerfile.deploy.dev .'
+                      echo 'Build completed'
+                    }
+                  }
+                }
 
-
-    stage('Setup MySQL for Dev'){
-        when {
-            expression { params.Environment == 'dev' }
+                stage('Tag Docker Image') {
+                  steps {
+                    dir('.') {
+                      sh 'docker image tag team4/spring_image:latest igagankalra/team4-spring-devimage:latest'
+                      echo 'Image Tagged'
+                    }
+                  }
+                }
+              
+                stage('Push Docker Image') {
+                  steps {
+                    dir('.') {
+                      sh 'docker push igagankalra/team4-spring-devimage:latest'
+                      sh 'docker rmi igagankalra/team4-spring-devimage:latest'
+                      echo 'Image pushed to Docker Hub'
+                    }
+                  }
+                }     
+            }
         } 
-        stages {
-            stage('Initialize Terraform') {
-                steps {                    
-                    sh "cd terraform_code/terraform.dev && terraform init"
+
+        stage('CI for Prod'){
+            when {
+                expression { params.Environment == 'prod' }
+            } 
+            stages{
+                stage('Intializing the project') {
+                  steps {
+                    echo 'Building Spring3Hibernate Application'
+                  }
+                }
+                stage('MVN Clean') {
+                  steps {
+                    dir('.') {
+                      sh 'mvn clean'
+                      echo 'MVN Clean completed'
+                    }
+                  }
+                }
+                stage('Checking Code Stability') {
+                  steps {
+                    dir('.') {
+                      sh 'mvn validate'
+                      echo 'Checking Code Stability completed'
+                    }
+                  }
+                }
+                stage('Code Quality') {
+                    parallel {
+                        stage ('PMD') {
+                            steps {
+                                dir('.') {
+                                    sh 'mvn pmd:pmd'
+                                }
+                            }
+                        }
+                        stage ('Bug Scan') {
+                            steps {
+                                dir('.') {
+                                    sh 'mvn findbugs:findbugs'
+                                }
+                            }
+                        }
+                    }
+                }
+                stage('Security Checks - OWASP') {
+                  steps {
+                    dir('.') {
+                      sh 'mvn dependency-check:check' 
+                      sh 'mkdir -p target/dependency-check-report && cp target/dependency-check-report.html target/dependency-check-report/'         
+                      echo 'Security Checks completed'
+                    }
+                  }
+                }
+                stage ('Run Unit Tests') {
+                  steps {
+                    dir('.') {
+                      sh 'mvn test'
+                    }
+                  }
+                }
+                
+                stage ('Code Coverage Analysis') {
+                  steps {
+                    dir('.') {
+                      sh 'mvn cobertura:cobertura'
+                    }
+                  }
+                }
+                stage ('Test Report') {
+                  steps {
+                    dir('.') {
+                      sh 'mvn surefire-report:report'
+                    }
+                  }
+                }
+                stage('Build Package') {
+                  steps {
+                    dir('.') {
+                      sh 'mvn package'
+                      echo 'Build completed'
+                    }
+                  }
+                }
+                
+                stage('Login') {
+                  steps {
+                    sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                    echo 'Login Successful'
+                  }
+                }
+
+                stage('Build Docker Image') {
+                  steps {
+                    dir('.') {
+                      sh 'docker build -t team4/spring_image -f Dockerfile.deploy.prod .'
+                      echo 'Build completed'
+                    }
+                  }
+                }
+
+                stage('Tag Docker Image') {
+                  steps {
+                    dir('.') {
+                      sh 'docker image tag team4/spring_image igagankalra/prod-spring:${Release_Image_Tag}'
+                      echo 'Image Tagged'
+                    } 
+                  }
+                }
+              
+                stage('Push Docker Image') {
+                  steps {
+                    dir('.') {
+                      sh 'docker push igagankalra/prod-spring:${Release_Image_Tag}'
+                      sh 'docker rmi igagankalra/prod-spring:${Release_Image_Tag}'
+                      echo 'Image pushed to Docker Hub'
+                    }
+                  }
                 }
             }
-            stage('Lint Terraform') {
-                steps {
-                    sh "cd terraform_code/terraform.dev && terraform fmt"
+            
+
+
+
+
+
+        } 
+
+        stage('Deployment On Dev') {
+            when {
+                expression { params.Environment == 'dev' }
+	        }
+            stages {
+                stage('Deploy App (Recreate)') {
+                    steps {                    
+                        sh "cd K8/dev && /usr/local/bin/kubectl apply -f spring-dev.yml"
+                    }
                 }
-            }
-            stage('Plan Terraform') {
-                steps {
-                    sh "cd terraform_code/terraform.dev && terraform plan -out mytfplan"
+                stage('Apply Load Balancer') {
+                    steps {
+                        sh "cd K8/dev && /usr/local/bin/kubectl apply -f spring-dev-service-LB.yml"
+                    }
                 }
-            }
-            stage('Execute Terraform Code') {
-                steps {
-                    sh "cd terraform_code/terraform.dev && terraform apply -auto-approve mytfplan" 
-                }
-            }
-            stage('Save the IP') {
-                steps {
-                    sh "cd terraform_code/terraform.dev && terraform output Instance_IP > instance_ip_dev"
-                    archiveArtifacts "terraform_code/terraform.dev/instance_ip_dev"
+		            stage('Application IP') {
+                    steps {
+                        sh '''
+                           IP=$(tmpvar=$(/usr/local/bin/kubectl describe service spring-dev | grep -A1 "LoadBalancer Ingress:" | awk "{print \$3}" | tr "\\n" ":"); echo ${tmpvar%/*}); 
+                           echo "Spring3Hibernet Application can be accessible on Development Environment at ${IP}"
+                        '''
+                    }
                 }
             }
         }
-    }
-    stage('Setup MySQL for Prod'){
-        when {
-            expression { params.Environment == 'prod' }
-        }
-        stages {
-            stage('Initialize Terraform') {
-                steps {
-                    sh "cd terraform_code/terraform.prod && terraform init -input=false"
+
+        stage('Deployment On Prod') {
+                    when {
+                        expression { params.Environment == 'prod' }
+                    }
+                    stages {
+                        stage('Add Image Tag') {
+                            steps {
+                                sh "cd K8/prod && sed -i s/\\<image_tag\\>/${Release_Image_Tag}/ spring-prod.yml"
+                            }
+                        }
+                        stage('Deploy App (Rolling)') {
+                            steps {                        
+                                sh "cd K8/prod && /usr/local/bin/kubectl apply -f spring-prod.yml"
+                            }
+                        }
+                        stage('Apply Load Balancer') {
+                            steps {
+                                sh "cd K8/prod && /usr/local/bin/kubectl apply -f spring-prod-service-LB.yml"
+                            }
+                        }
+                        stage('Application IP') {
+                            steps {
+                                sh '''
+                                  IP=$(tmpvar=$(/usr/local/bin/kubectl describe service team4-spring-prod | grep -A1 "LoadBalancer Ingress:" | awk "{print $5}" | tr "\\n" ":"); echo ${tmpvar%/*});
+                                  echo "Spring3Hibernet Application can be accessible on Production Environment at ${IP}"
+                                '''
+                            }
+                        }
+                    }
                 }
-            }
-            stage('Formatting') {
-                steps {
-                    sh "cd terraform_code/terraform.prod && terraform fmt"
-                }
-            }
-            stage('Plan Terraform') {
-                steps {
-                    sh "cd terraform_code/terraform.prod && terraform plan -out mytfplan"
-                }
-            }
-            stage('Execute Terraform') {
-                steps {
-                    sh "cd terraform_code/terraform.prod && terraform apply -auto-approve mytfplan"
-                }
-            }
-            stage('Archive IP') {
-                steps {
-                    sh "cd terraform_code/terraform.prod && terraform output Instance_IP > instance_ip_prod"
-                    archiveArtifacts "terraform_code/terraform.prod/instance_ip_prod"
-                }
-            }
-        }
-    }
-    stage('Execute Ansible Playbook on Dev') {
-        when {
-            expression { params.Environment == 'dev' }
-        }
-        steps {                
-            sh 'hostip_dev=$(cat terraform_code/terraform.dev/instance_ip_dev) && cd ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=${hostip_dev}"'
-        }
-    }
-    stage('Execute Ansible Playbook on Prod') {
-        when {
-            expression { params.Environment == 'prod' }
-        }
-        steps {
-            sh 'hostip_prod=$(cat terraform_code/terraform.prod/instance_ip_prod) && cd ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=${hostip_prod}"'
-        }
-    }
-
-
-
-
-
-
-    stage('Deployment On Dev') {
-        when {
-            expression { params.Environment == 'dev' }
-            }
-        stages {
-            stage('Deploy App (Recreate)') {
-                steps {                    
-                    sh "cd K8_Deployments/dev && /usr/local/bin/kubectl apply -f spring-dev.yml"
-                }
-            }
-            stage('Apply Load Balancer') {
-                steps {
-                    sh "cd K8_Deployments/dev && /usr/local/bin/kubectl apply -f spring-dev-service-LB.yml"
-                }
-            }
-            stage('Application IP') {
-                steps {
-                    sh '''
-                        IP=$(tmpvar=$(/usr/local/bin/kubectl describe service spring-dev | grep -A1 "LoadBalancer Ingress:" | awk "{print \$3}" | tr "\\n" ":"); echo ${tmpvar%/*}); 
-                        echo "Spring3Hibernet Application can be accessible on Development Environment at ${IP}"
-                    '''
-                }
-            }
-        }
-    }
-    stage('Deployment On Prod') {
-        when {
-            expression { params.Environment == 'prod' }
-        }
-        stages {
-            stage('Add Image Tag') {
-                steps {
-                    sh "cd K8_Deployments/prod && sed -i s/\\<image_tag\\>/${Release_Image_Tag}/ spring-prod.yml"
-                }
-            }
-            stage('Deploy App (Rolling)') {
-                steps {                        
-                    sh "cd K8_Deployments/prod && /usr/local/bin/kubectl apply -f spring-prod.yml"
-                }
-            }
-            stage('Apply Load Balancer') {
-                steps {
-                    sh "cd SpringApp_K8_Deployments/prod && /usr/local/bin/kubectl apply -f spring-prod-service-LB.yml"
-                }
-            }
-            stage('Application IP') {
-                steps {
-                    sh '''
-                        IP=$(tmpvar=$(/usr/local/bin/kubectl describe service spring-prod | grep -A1 "LoadBalancer Ingress:" | awk "{print $3}" | tr "\\n" ":"); echo ${tmpvar%/*});
-                        echo "Spring3Hibernet Application can be accessible on Production Environment at ${IP}"
-                    '''
-                }
-            }
-        }
-      }
-
-
-
-
-
-
-
-
+    } 
   }
+
+
   post {
     always {
       step([$class: 'CoberturaPublisher', autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: '**/coverage.xml', failUnhealthy: false, failUnstable: false, maxNumberOfBuilds: 0, onlyStable: false, sourceEncoding: 'ASCII', zoomCoverageChart: false])

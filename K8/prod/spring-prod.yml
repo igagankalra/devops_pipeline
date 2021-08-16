@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-prod
+  labels:
+    app: spring
+    env: prod
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: spring
+      env: prod
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 50%
+  template:
+    metadata:
+      labels:
+        app: spring
+        env: prod
+    spec:
+      containers:
+      - image: igagankalra/prod-spring:<image_tag>
+        name: spring-prod
+        ports:
+        - containerPort: 8080
+

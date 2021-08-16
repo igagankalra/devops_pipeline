@@ -21,19 +21,19 @@ pipeline {
         stage('Deployment On Dev') {
             when {
                 expression { params.Environment == 'dev' }
-	    }
+	        }
             stages {
                 stage('Deploy App (Recreate)') {
                     steps {                    
-                        sh "cd K8_Deployments/dev && /usr/local/bin/kubectl apply -f spring-dev.yml"
+                        sh "cd K8/dev && /usr/local/bin/kubectl apply -f spring-dev.yml"
                     }
                 }
                 stage('Apply Load Balancer') {
                     steps {
-                        sh "cd K8_Deployments/dev && /usr/local/bin/kubectl apply -f spring-dev-service-LB.yml"
+                        sh "cd K8/dev && /usr/local/bin/kubectl apply -f spring-dev-service-LB.yml"
                     }
                 }
-		stage('Application IP') {
+		        stage('Application IP') {
                     steps {
                         sh '''
                            IP=$(tmpvar=$(/usr/local/bin/kubectl describe service spring-dev | grep -A1 "LoadBalancer Ingress:" | awk "{print \$3}" | tr "\\n" ":"); echo ${tmpvar%/*}); 
@@ -50,23 +50,23 @@ pipeline {
             stages {
                 stage('Add Image Tag') {
                     steps {
-                        sh "cd K8_Deployments/prod && sed -i s/\\<image_tag\\>/${Release_Image_Tag}/ spring-prod.yml"
+                        sh "cd K8/prod && sed -i s/\\<image_tag\\>/${Release_Image_Tag}/ spring-prod.yml"
                     }
                 }
                 stage('Deploy App (Rolling)') {
                     steps {                        
-                        sh "cd K8_Deployments/prod && /usr/local/bin/kubectl apply -f spring-prod.yml"
+                        sh "cd K8/prod && /usr/local/bin/kubectl apply -f spring-prod.yml"
                     }
                 }
                 stage('Apply Load Balancer') {
                     steps {
-                        sh "cd K8_Deployments/prod && /usr/local/bin/kubectl apply -f spring-prod-service-LB.yml"
+                        sh "cd K8/prod && /usr/local/bin/kubectl apply -f spring-prod-service-LB.yml"
                     }
                 }
                 stage('Application IP') {
                     steps {
                         sh '''
-			   IP=$(tmpvar=$(/usr/local/bin/kubectl describe service team4-spring-prod | grep -A1 "LoadBalancer Ingress:" | awk "{print $5}" | tr "\\n" ":"); echo ${tmpvar%/*});
+			               IP=$(tmpvar=$(/usr/local/bin/kubectl describe service team4-spring-prod | grep -A1 "LoadBalancer Ingress:" | awk "{print $5}" | tr "\\n" ":"); echo ${tmpvar%/*});
                            echo "Spring3Hibernet Application can be accessible on Production Environment at ${IP}"
                         '''
                     }
