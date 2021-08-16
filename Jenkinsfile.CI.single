@@ -36,10 +36,10 @@ pipeline {
         stage('Setup MySQL for Dev'){
             when {
                 expression { params.Environment == 'dev' }
-            } 
+            }
             stages {
                 stage('Initialize Terraform') {
-                    steps {                    
+                    steps {
                         sh "cd terraform_code/terraform.dev && terraform init"
                     }
                 }
@@ -55,7 +55,7 @@ pipeline {
                 }
                 stage('Execute Terraform Code') {
                     steps {
-                        sh "cd terraform_code/terraform.dev && terraform apply -auto-approve mytfplan" 
+                        sh "cd terraform_code/terraform.dev && terraform apply -auto-approve mytfplan"
                     }
                 }
                 stage('Save the IP') {
@@ -105,7 +105,7 @@ pipeline {
             when {
                 expression { params.Environment == 'dev' }
             }
-            steps { 
+            steps {
                 script{
                     sleep 20
                     sh 'sed -i \'s/"//g\' terraform_code/terraform.dev/instance_ip_dev && hostip_dev=$(cat terraform_code/terraform.dev/instance_ip_dev) && cd ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=${hostip_dev}"'
@@ -130,7 +130,7 @@ pipeline {
         stage('CI for Dev'){
             when {
                 expression { params.Environment == 'dev' }
-            } 
+            }
             stages{
 
                 stage('Intializing the project') {
@@ -171,7 +171,7 @@ pipeline {
                     }
                   }
                 }
-                
+
                 stage ('Code Coverage Analysis') {
                   steps {
                     dir('.') {
@@ -179,7 +179,7 @@ pipeline {
                     }
                   }
                 }
-              
+
                 stage ('Test Report') {
                   steps {
                     dir('.') {
@@ -187,11 +187,11 @@ pipeline {
                     }
                   }
                 }
-                
+
                 stage('Security Checks - OWASP') {
                   steps {
-                    sh 'mvn dependency-check:check' 
-                    sh 'mkdir -p target/dependency-check-report && cp target/dependency-check-report.html target/dependency-check-report/'         
+                    sh 'mvn dependency-check:check'
+                    sh 'mkdir -p target/dependency-check-report && cp target/dependency-check-report.html target/dependency-check-report/'
                     echo 'Security Checks completed'
                   }
                 }
@@ -204,14 +204,14 @@ pipeline {
                     }
                   }
                 }
-                
+
                 stage('Login') {
                   steps {
                     sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
                     echo 'Login Successful'
                   }
                 }
-                
+
                 stage('Build Docker Image') {
                   steps {
                     dir('.') {
@@ -229,7 +229,7 @@ pipeline {
                     }
                   }
                 }
-              
+
                 stage('Push Docker Image') {
                   steps {
                     dir('.') {
@@ -238,14 +238,14 @@ pipeline {
                       echo 'Image pushed to Docker Hub'
                     }
                   }
-                }     
+                }
             }
-        } 
+        }
 
         stage('CI for Prod'){
             when {
                 expression { params.Environment == 'prod' }
-            } 
+            }
             stages{
                 stage('Intializing the project') {
                   steps {
@@ -289,8 +289,8 @@ pipeline {
                 stage('Security Checks - OWASP') {
                   steps {
                     dir('.') {
-                      sh 'mvn dependency-check:check' 
-                      sh 'mkdir -p target/dependency-check-report && cp target/dependency-check-report.html target/dependency-check-report/'         
+                      sh 'mvn dependency-check:check'
+                      sh 'mkdir -p target/dependency-check-report && cp target/dependency-check-report.html target/dependency-check-report/'
                       echo 'Security Checks completed'
                     }
                   }
@@ -302,7 +302,7 @@ pipeline {
                     }
                   }
                 }
-                
+
                 stage ('Code Coverage Analysis') {
                   steps {
                     dir('.') {
@@ -325,7 +325,7 @@ pipeline {
                     }
                   }
                 }
-                
+
                 stage('Login') {
                   steps {
                     sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
@@ -347,10 +347,10 @@ pipeline {
                     dir('.') {
                       sh 'docker image tag team4/spring_image igagankalra/prod-spring:${Release_Image_Tag}'
                       echo 'Image Tagged'
-                    } 
+                    }
                   }
                 }
-              
+
                 stage('Push Docker Image') {
                   steps {
                     dir('.') {
@@ -361,13 +361,13 @@ pipeline {
                   }
                 }
             }
-            
 
 
 
 
 
-        } 
+
+        }
 
         stage('Deployment On Dev') {
             when {
@@ -375,7 +375,7 @@ pipeline {
 	        }
             stages {
                 stage('Deploy App (Recreate)') {
-                    steps {                    
+                    steps {
                         sh "cd K8/dev && /usr/local/bin/kubectl apply -f spring-dev.yml"
                     }
                 }
@@ -406,7 +406,7 @@ pipeline {
                             }
                         }
                         stage('Deploy App (Rolling)') {
-                            steps {                        
+                            steps {
                                 sh "cd K8/prod && /usr/local/bin/kubectl apply -f spring-prod.yml"
                             }
                         }
@@ -425,7 +425,8 @@ pipeline {
                         }
                     }
                 }
-    } 
+    }
+
   }
 
 
@@ -440,4 +441,6 @@ pipeline {
       // cleanWs()
     }
   }
+
+
 }
