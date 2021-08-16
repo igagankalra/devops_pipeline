@@ -23,7 +23,7 @@ spec:
         env: prod
     spec:
       containers:
-      - image: igagankalra/team4-spring:<image_tag>
+      - image: igagankalra/prod-spring:<image_tag>
         name: team4-spring-prod
         ports:
         - containerPort: 8080
