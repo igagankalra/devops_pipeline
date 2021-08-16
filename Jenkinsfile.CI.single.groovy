@@ -1,10 +1,10 @@
-/* groovylint-disable CompileStatic, LineLength */
-pipeline {
+pipeline{
+  
   agent 'any'
 
-    environment {
-        DOCKERHUB_CREDENTIALS=credentials('docker_hub_creds')
-    }
+  environment {
+      DOCKERHUB_CREDENTIALS=credentials('docker_hub_creds')
+  }
 
   tools {
     jdk 'java8'
@@ -63,7 +63,7 @@ pipeline {
                           }
                 }
               }
-          }
+        }
         stage('Setup MySQL for Prod'){  
               when {
                   expression { params.Environment == 'prod' }
@@ -96,7 +96,7 @@ pipeline {
                       }
                   }
                 }
-            }
+        }
 
         stage('Execute Ansible Playbook on Dev') {
           when {
@@ -237,7 +237,7 @@ pipeline {
                 }
               }
           }
-      }
+        }
 
         stage('CI for Prod'){
             when {
@@ -366,7 +366,7 @@ pipeline {
                 expression { params.Environment == 'dev' }
             }
             stages {
-                stage('Deploy App (Recreate)') {
+                stage('Deploy App Dev'){
                     steps {
                         sh "cd K8/dev && /usr/local/bin/kubectl apply -f spring-dev.yml"
                     }
@@ -400,7 +400,7 @@ pipeline {
                                 sh "cd K8/prod && sed -i s/\\<image_tag\\>/${Release_Image_Tag}/ spring-prod.yml"
                             }
                         }
-                        stage('Deploy App (Rolling)') {
+                        stage('Deploy App Production)') {
                             steps {
                                 sh "cd K8/prod && /usr/local/bin/kubectl apply -f spring-prod.yml"
                             }
@@ -412,16 +412,13 @@ pipeline {
                         }
                         stage('Application IP') {
                             steps {
-                              script{
-                                  sh '''
-                                  IP=$(tmpvar=$(/usr/local/bin/kubectl describe service spring-dev | grep -A3 "LoadBalancer Ingress:" | awk "{print \$3}" | tr "\\n" ":"| awk '{print $1":"$4}' FS=':' | tr "/\\TCP" " "); echo ${tmpvar%/*});
-                                  echo "Spring3Hibernet Application can be accessible on Production Environment at ${IP}"
-                                  '''
+                              script {
+                                  sh 'IP=$(tmpvar=$(/usr/local/bin/kubectl describe service spring-dev | grep -A3 "LoadBalancer Ingress:" | awk "{print \$3}" | tr "\\n" ":"| awk '{print $1":"$4}' FS=':' | tr "/\\TCP" " "); echo ${tmpvar%/*});'
+                                  sh 'echo "Spring3Hibernet Application can be accessible on Production Environment at ${IP}"'
+                                  }
                               }
-
-                            }
-                        }
-                    }
+                         }
+                      }
         }
   }
 
@@ -435,7 +432,4 @@ pipeline {
       publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'target/dependency-check-report', reportFiles: 'dependency-check-report.html', reportName: 'OWASP Dependency-Check Report', reportTitles: 'OWASP Dependency-Check Report'])
     }
   }
-
 }
-
-
