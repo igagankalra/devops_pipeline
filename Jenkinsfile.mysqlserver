@@ -18,29 +18,39 @@ pipeline {
             } 
             stages {
                 stage('Initialize Terraform') {
-                    steps {                    
-                        sh "cd terraform_code/terraform.dev && terraform init"
+                    steps {   
+                        dir("terraform_code/terraform.dev"){
+                            sh "terraform init"
+                        }
                     }
                 }
                 stage('Lint Terraform') {
                     steps {
-                        sh "cd terraform_code/terraform.dev && terraform fmt"
+                        dir("terraform_code/terraform.dev"){
+                            sh "terraform fmt"
+                        }
                     }
                 }
                 stage('Plan Terraform') {
                     steps {
-                        sh "cd terraform_code/terraform.dev && terraform plan -out mytfplan"
+                        dir("terraform_code/terraform.dev"){
+                            sh "terraform plan -out mytfplan"
+                        }
                     }
                 }
                 stage('Execute Terraform Code') {
                     steps {
-                        sh "cd terraform_code/terraform.dev && terraform apply -auto-approve mytfplan" 
+                        dir("terraform_code/terraform.dev"){
+                            sh "terraform apply -auto-approve mytfplan" 
+                        }
                     }
                 }
 	        stage('Save the IP') {
                     steps {
-                        sh "cd terraform_code/terraform.dev && terraform output Instance_IP > instance_ip_dev"
-                        archiveArtifacts "terraform_code/terraform.dev/instance_ip_dev"
+                        dir("terraform_code/terraform.dev"){
+                            sh "terraform output Instance_IP > instance_ip_dev"
+                            archiveArtifacts "terraform_code/terraform.dev/instance_ip_dev"
+                        }
                     }
                 }
             }
@@ -52,28 +62,38 @@ pipeline {
             stages {
                 stage('Initialize Terraform') {
                     steps {
-                        sh "cd terraform_code/terraform.prod && terraform init"
+                        dir("terraform_code/terraform.prod"){
+                            sh "terraform init"
+                        }
                     }
                 }
                 stage('Formatting') {
                     steps {
-                        sh "cd terraform_code/terraform.prod && terraform fmt"
+                        dir("terraform_code/terraform.prod"){
+                            sh "terraform fmt"
+                        }
                     }
                 }
                 stage('Plan Terraform') {
                     steps {
-                        sh "cd terraform_code/terraform.prod && terraform plan -out mytfplan"
+                        dir("terraform_code/terraform.prod"){
+                            sh "terraform plan -out mytfplan"
+                        }
                     }
                 }
                 stage('Execute Terraform') {
                     steps {
-                        sh "cd terraform_code/terraform.prod && terraform apply -auto-approve mytfplan"
+                        dir("terraform_code/terraform.prod"){
+                            sh "terraform apply -auto-approve mytfplan"
+                        }
                     }
                 }
                 stage('Archive IP') {
                     steps {
-                        sh "cd terraform_code/terraform.prod && terraform output Instance_IP > instance_ip_prod"
-                        archiveArtifacts "terraform_code/terraform.prod/instance_ip_prod"
+                        dir("terraform_code/terraform.prod"){
+                            sh "terraform output Instance_IP > instance_ip_prod"
+                            archiveArtifacts "terraform_code/terraform.prod/instance_ip_prod"
+                        }
                     }
                 }
             }
@@ -86,10 +106,7 @@ pipeline {
                 script{
                     sleep 20
                     sh 'sed -i \'s/"//g\' terraform_code/terraform.dev/instance_ip_dev && hostip_dev=$(cat terraform_code/terraform.dev/instance_ip_dev) && cd ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=${hostip_dev}"'
-
                 }
-                // sh 'hostip_dev=$(cat terraform_code/terraform.dev/instance_ip_dev)'
-                // sh 'cd ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=${hostip_dev}"'
             }
         }
         stage('Execute Ansible Playbook on Prod') {
@@ -100,9 +117,7 @@ pipeline {
                 script{
                     sleep 20
                     sh 'sed -i \'s/"//g\' terraform_code/terraform.prod/instance_ip_prod && hostip_prod=$(cat terraform_code/terraform.prod/instance_ip_prod) && cd ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=${hostip_prod}"'
-
                 }
-                // sh 'hostip_prod=$(cat terraform_code/terraform.prod/instance_ip_prod) |  tr -d \'"\' && cd ansible && ansible-playbook -i hosts mysqlsetup.yml --extra-vars "ansible_host=${hostip_prod}"'
             }
         }
     }
