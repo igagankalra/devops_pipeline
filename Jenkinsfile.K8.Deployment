@@ -48,7 +48,7 @@ pipeline {
                 expression { params.Environment == 'prod' }
             }
             stages {
-                stage{
+                stages{
                     dir("K8/prod"){
                         stage('Add Image Tag') {
                             steps {
