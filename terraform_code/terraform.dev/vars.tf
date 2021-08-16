@@ -1,17 +1,21 @@
 variable "vpc_id" {
   description = "VPC ID "
+  type = string
   default     = "vpc-c8c44ab5"
 }
 variable "igw_id" {
+  type = string
   description = "IGW ID "
   default     = "igw-2dba4757"
 }
 variable "subnet1_cidr" {
+  type = string
   description = "The CIDR block for the subnet"
   default     = "172.31.96.0/20"
 }
 variable "az1" {
   description = "The availability zone for the subnet"
+  type = string
   default     = "us-east-1a"
 }
 variable "map_public_ip" {
@@ -47,6 +51,33 @@ variable "instance_type" {
   default     = "t2.micro"
 }
 variable "key_name" {
+  type = string
   description = "key name"
   default     = "gagan-keys"
+}
+variable "sg_tag_name" {
+  type = string
+  description = "Security Group tag name"
+  default     = "team4_mysql_dev_sg"
+}
+variable "subnet_tag_name" {
+  type = string
+  description = "Subnet tag name"
+  default     = "team4_mysql_dev_subnet"
+}
+variable "vm_tag_name" {
+  type = string
+  description = "VM tag name"
+  default     = "team4_MySQL_host_dev_instance"
+}
+variable "env_tag_name" {
+  type = string
+  description = "ENV tag name"
+  default     = "Dev"
+}
+
+variable "sg_resource_name" {
+  description = " Resource name"
+  type = string
+  default     = "team4-mysql-dev-sg"
 }

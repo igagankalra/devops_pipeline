@@ -1,12 +1,4 @@
-output "Instance_ID" {
-  value = aws_instance.mysql-instance.id
-}
-
-output "Instance_DNS" {
-  value = aws_instance.mysql-instance.public_dns
-}
-
 output "Instance_IP" {
+  description = "The IP of the MySQL machine."
   value = aws_instance.mysql-instance.public_ip
 }
-

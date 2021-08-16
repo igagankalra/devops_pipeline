@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-dev
+  labels:
+    app: team4-spring
+    env: dev
+spec:
+  selector:
+    matchLabels:
+      app: spring-dev
+      env: dev
+  strategy:
+    type: Recreate 
+  template:
+    metadata:
+      labels:
+        app: spring-dev
+        env: dev
+    spec:
+      containers:
+      - image: igagankalra/team4-spring-devimage
+        name: spring-dev
+        ports:
+        - containerPort: 8080
+
