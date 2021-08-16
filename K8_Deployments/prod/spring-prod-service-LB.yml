@@ -9,5 +9,5 @@ spec:
     port: 81
     targetPort: 8080
   selector:
-    app: spring 
+    app: team4-spring-prod
     env: prod

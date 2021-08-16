@@ -8,5 +8,5 @@ spec:
   - protocol: TCP
     port: 8080
   selector:
-    app: spring
+    app: spring-dev
     env: dev
